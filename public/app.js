@@ -30,7 +30,13 @@ async function api(yol, secenek = {}) {
     secenek.method = secenek.method || "POST";
   }
   const y = await fetch("/api" + yol, { ...secenek, headers: bas });
-  if (y.status === 401) { cikisYap(); throw new Error("Oturum sona erdi, tekrar giriş yapın."); }
+  // 401 giriş/kayıt uçlarında "hatalı şifre" demektir; oturum düştü sanıp
+  // kullanıcıyı yanıltmayalım — gerçek hata mesajı aşağıda okunur.
+  const kimlikUcu = yol.startsWith("/giris") || yol.startsWith("/kayit");
+  if (y.status === 401 && !kimlikUcu) {
+    cikisYap();
+    throw new Error("Oturum sona erdi, tekrar giriş yapın.");
+  }
   if (!y.ok) {
     let m = "İşlem başarısız.";
     try { m = (await y.json()).detail || m; } catch (e) {}
@@ -79,6 +85,10 @@ function girisHata(mesaj) {
   h.classList.remove("gizli");
 }
 
+["#gAd", "#gSifre", "#kAd", "#kSifre"].forEach((sec) => {
+  $(sec).addEventListener("input", () => $("#girisHata").classList.add("gizli"));
+});
+
 $("#girisForm").onsubmit = async (e) => {
   e.preventDefault();
   try {
@@ -111,6 +121,9 @@ function cikisYap() {
 }
 
 async function baslat(adi) {
+  const h = $("#girisHata");
+  h.textContent = ""; h.classList.add("gizli");   // eski hata kalmasın
+  $("#gSifre").value = ""; $("#kSifre").value = "";
   $("#girisEkran").classList.add("gizli");
   $("#uygulama").classList.remove("gizli");
   $("#kullaniciEtiket").textContent = "👤 " + adi;
