@@ -67,38 +67,35 @@ def govde(v: dict):
         gc = "Daha önce işe giriş çıkış yapmadım. Kesintisiz olarak çalışıyorum."
     else:
         gc = "Daha önce işe giriş çıkış yaptım."
+    # iş sözleşmesi cümlesi 1. paragrafın sonuna eklenir
+    if _olumlu(g, "sozlesme"):
+        sozlesme = "İşe girerken iş sözleşmesi imzaladım ve bir nüshasını aldım."
+    else:
+        sozlesme = "İşe girerken iş sözleşmesi imzalamadım."
     P.append(
         f"Adı geçen; {g.get('ad_soyad','')} isimli işçi; “Ben yaklaşık {g['ise_baslama']} "
         f"tarihinden itibaren işyerinde çalışıyorum. Hâlihazırda {g['bolum_gorev']} ile görev "
-        f"yapmaktayım. {gc} Ben işyerinde {g['gorev_tanimi']} görevlerini yerine getiriyorum."
+        f"yapmaktayım. {gc} Ben işyerinde {g['gorev_tanimi']} görevlerini yerine getiriyorum. "
+        f"{sozlesme}"
     )
 
-    # --- 2. paragraf ---
-    if _olumlu(g, "sozlesme"):
-        s1 = "İşe girerken iş sözleşmesi imzaladım ve bir nüshasını aldım."
-    else:
-        s1 = "İşe girerken iş sözleşmesi imzalamadım."
+    # --- 2. paragraf: ücret (son ay ücreti giriş cümlesi) ---
     ek = f" Ücretime ek olarak {g['ek_ucret']} kalemlerinde ücret alıyorum." if g["ek_ucret"].strip() else ""
-    P.append(f"{s1}  Ben son ay yaklaşık {g['ucret_son_ay']} tl ücret aldım.{ek}")
-
-    # --- 3. paragraf ---
     elden = "Elden ücret ödemesi yoktur." if not _olumlu(g, "elden_odeme") else "Elden ücret ödemesi vardır."
     yabanci = ("Ben işyerinde yabancı çalışana rastlamadım."
                if not _olumlu(g, "yabanci") else "Ben işyerinde yabancı çalışana rastladım.")
     P.append(
+        f"Ben son ay yaklaşık {g['ucret_son_ay']} tl ücret aldım.{ek} "
         f"Ücretim ilgili ayı takip eden ayın {g['ucret_gunu']}.günü {g['banka']}ndan yatırılmaktadır. "
         f"İşyerinden ücret alacağım bulunmamaktadır. {elden} Ücret hesap pusulalarımız işverenliğin "
-        f"sistemi üzerinden tarafımızla paylaşılmaktadır. İstirahat raporu almamız durumunda iki güne "
-        f"kadar ücretlerimizden bir kesinti yapılmamaktadır. {yabanci}"
+        f"sistemi üzerinden tarafımızla paylaşılmaktadır. {yabanci}"
     )
 
     # --- 4. paragraf: giriş-çıkış + vardiya ---
     if g["vardiya"] in (True, "olumlu"):
         P.append(
             f"İşyerine giriş çıkış saatlerimiz {g['takip_araci']} aracılığı ile takip edilmektedir. "
-            f"İşyerimizde vardiyalı çalışma vardır. Ben de vardiyalı olarak çalışıyorum."
-        )
-        P.append(
+            f"İşyerimizde vardiyalı çalışma vardır. Ben de vardiyalı olarak çalışıyorum. "
             f"Ben haftanın {g['v_gun']} günü {g['v_saat']} şeklinde dönüşümlü olarak çalışmaktayım. "
             f"Bu çalışma düzeninde haftanın {g['v_hafta_tatili']} günü kadar hafta tatili kullanmaktayım. "
             f"Vardiyalarımız dönüşümlü olarak düzenlenmektedir. Daimi gece çalışması (2 haftayı aşacak "
@@ -108,9 +105,7 @@ def govde(v: dict):
     else:
         P.append(
             f"İşyerine giriş çıkış saatlerimiz {g['takip_araci']} aracılığı ile takip edilmektedir. "
-            f"İşyerimizde vardiyalı çalışma yoktur."
-        )
-        P.append(
+            f"İşyerimizde vardiyalı çalışma yoktur. "
             f"Ben haftanın {g['n_gun']} günü {g['n_saat']} şekilde çalışıyorum. {g['n_tatil_gun']} "
             f"günlerini hafta tatili kullanıyorum. 7 gün üst üste olacak şekilde yani hafta tatili "
             f"kullanmaksızın çalıştığım olmadı."
@@ -137,8 +132,8 @@ def govde(v: dict):
     # --- yıllık izin ---
     bakiye = ("İçerde birikmiş bakiye yıllık iznim bulunmamaktadır."
               if not _olumlu(g, "bakiye_izin") else "İçerde birikmiş bakiye yıllık iznim bulunmaktadır.")
-    parcali = (" Ben izinlerimi bir bölümü 10 günden aşağı olacak şekilde parçalar halinde kullandım."
-               if _olumlu(g, "izin_parcali") else "")
+    parcali = (" Ben geçtiğimiz dönem yıllık izinlerimi 10 günden aşağı olacak şekilde "
+               "parçalar halinde kullandım." if _olumlu(g, "izin_parcali") else "")
     P.append(
         f"Benim kıdemimden ötürü {g['izin_gun']} gün kadar yıllık izin hakkım vardır. {bakiye} "
         f"Yıllık izin dönemine ait ücretleri peşin veya avans olarak ödenmemektedir.{parcali} ” dedi."
