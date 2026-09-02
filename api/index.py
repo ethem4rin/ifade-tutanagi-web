@@ -84,7 +84,10 @@ def cikis(authorization: str = Header(default="")):
 def ben(authorization: str = Header(default="")):
     anahtar = _kullanici(_jeton(authorization))
     h = _hafiza(anahtar)
-    return {"kullanici": anahtar, "kayitli_isci": len(h.isci_adlari())}
+    kayit = depo.kullanici_getir(anahtar) or {}
+    # görünen ad: kayıttaki tam ad (yoksa kullanıcı adı)
+    return {"kullanici": kayit.get("tam_ad") or kayit.get("ad") or anahtar,
+            "kayitli_isci": len(h.isci_adlari())}
 
 
 @app.post("/api/sifre")
