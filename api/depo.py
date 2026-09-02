@@ -27,9 +27,13 @@ def _istek(yontem: str, yol: str, govde=None, basliklar=None):
     url = "%s/rest/v1/%s" % (_SUPABASE_URL, yol)
     bas = {
         "apikey": _SUPABASE_KEY,
-        "Authorization": "Bearer " + _SUPABASE_KEY,
         "Content-Type": "application/json",
     }
+    # Eski (legacy) service_role anahtarları JWT'dir ve Bearer ile de gönderilir.
+    # Yeni sb_secret_... anahtarları JWT değildir; Bearer ile gönderilirse
+    # PostgREST bunu JWT sanıp 401 döner — sadece apikey başlığı kullanılır.
+    if _SUPABASE_KEY.startswith("eyJ"):
+        bas["Authorization"] = "Bearer " + _SUPABASE_KEY
     if basliklar:
         bas.update(basliklar)
     veri = json.dumps(govde).encode("utf-8") if govde is not None else None
