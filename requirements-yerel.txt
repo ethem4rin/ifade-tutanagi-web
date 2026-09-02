@@ -1,0 +1,3 @@
+# Yerel geliştirme (baslat.bat için) — Vercel'de gerekmez
+-r requirements.txt
+uvicorn[standard]==0.34.0

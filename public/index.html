@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>İşçi İfade Tutanağı</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================== GİRİŞ EKRANI ================== -->
+<div id="girisEkran" class="giris-sarmal">
+  <div class="giris-kart">
+    <div class="logo">📋</div>
+    <h1>İşçi İfade Tutanağı</h1>
+    <p class="alt">İş Müfettişliği · tutanak oluşturma sistemi</p>
+
+    <div class="sekmeler">
+      <button class="sekme aktif" data-sekme="giris">Giriş Yap</button>
+      <button class="sekme" data-sekme="kayit">Hesap Oluştur</button>
+    </div>
+
+    <form id="girisForm" class="form-alan">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="gAd" autocomplete="username" required>
+      <label>Şifre</label>
+      <input type="password" id="gSifre" autocomplete="current-password" required>
+      <button type="submit" class="btn birincil">Giriş Yap</button>
+    </form>
+
+    <form id="kayitForm" class="form-alan gizli">
+      <label>Ad Soyad</label>
+      <input type="text" id="kTamAd" placeholder="Volkan AYDIN">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="kAd" autocomplete="username" required>
+      <label>Şifre <span class="ipucu">(en az 6 karakter)</span></label>
+      <input type="password" id="kSifre" autocomplete="new-password" required>
+      <button type="submit" class="btn birincil">Hesap Oluştur</button>
+    </form>
+
+    <div id="girisHata" class="hata gizli"></div>
+    <p class="dipnot">Girdiğiniz işçi bilgileri yalnızca sizin hesabınızda saklanır.</p>
+  </div>
+</div>
+
+<!-- ================== ANA UYGULAMA ================== -->
+<div id="uygulama" class="gizli">
+  <header class="ust-bar">
+    <div class="baslik">📋 İşçi İfade Tutanağı</div>
+    <div class="ust-sag">
+      <span id="kullaniciEtiket" class="rozet"></span>
+      <button id="cikisBtn" class="btn kucuk gri">Çıkış</button>
+    </div>
+  </header>
+
+  <!-- 1. Görev listesi -->
+  <section class="kart">
+    <h2>1 · Görev Listesi PDF</h2>
+    <div class="satir">
+      <label class="dosya-btn">
+        <input type="file" id="pdfGirdi" accept="application/pdf" hidden>
+        📄 PDF Seç
+      </label>
+      <span id="pdfDurum" class="durum bekle">PDF yüklenmedi</span>
+    </div>
+    <div class="satir" id="isyeriSatir" style="display:none">
+      <label class="etiket">İşyeri</label>
+      <select id="isyeriSecim" class="genis"></select>
+    </div>
+  </section>
+
+  <!-- 2. İşyeri bilgileri -->
+  <section class="kart gizli" id="isyeriKart">
+    <h2>2 · İşyeri Bilgileri <span class="ipucu">otomatik — düzeltilebilir</span></h2>
+    <div class="izgara">
+      <label>Sicil No</label><input type="text" id="iSicil">
+      <label>İşyerinin Unvanı</label><input type="text" id="iUnvan">
+      <label>İşveren</label><input type="text" id="iIsveren">
+      <label>İşyerinin Adresi</label><input type="text" id="iAdres">
+    </div>
+    <div class="satir">
+      <button id="formOlusturBtn" class="btn yesil">📋 İşveren Formu İndir (boş Excel)</button>
+      <label class="dosya-btn yesil-cerceve">
+        <input type="file" id="formGirdi" accept=".xlsx" hidden>
+        📥 Dolu Formu Yükle
+      </label>
+      <select id="formIsciSecim" class="genis" style="display:none"></select>
+    </div>
+  </section>
+
+  <!-- 3. İşçi kimliği -->
+  <section class="kart gizli" id="kimlikKart">
+    <h2>3 · İşçi Kimliği</h2>
+    <div class="izgara ikili" id="kimlikIzgara"></div>
+    <div id="hatirlaDurum" class="durum ok gizli"></div>
+  </section>
+
+  <!-- 4. İfade bilgileri -->
+  <section class="kart gizli" id="ifadeKart">
+    <h2>4 · İfade Bilgileri
+      <span class="ipucu">🟢 Evet/Hayır · 🔴 elle doldur</span>
+    </h2>
+    <div id="ifadeAlanlar"></div>
+  </section>
+
+  <!-- 5. Önizleme -->
+  <section class="kart gizli" id="onizlemeKart">
+    <h2>5 · Önizleme <span class="ipucu">standart cümleleri burada düzenleyebilirsiniz</span></h2>
+    <button id="onizlemeBtn" class="btn">Önizlemeyi Oluştur / Yenile</button>
+    <textarea id="onizlemeMetin" rows="14" placeholder="Önizlemeyi oluşturun…"></textarea>
+  </section>
+
+  <!-- 6. Kaydet -->
+  <section class="kart gizli" id="kaydetKart">
+    <h2>6 · Tutanağı Oluştur</h2>
+    <div class="satir">
+      <button id="indirBtn" class="btn birincil">💾 Bu İşçinin Tutanağını İndir (.docx)</button>
+      <button id="listeyeBtn" class="btn">➕ Listeye Ekle (toplu paket için)</button>
+      <button id="yeniBtn" class="btn gri">🔄 Formu Temizle</button>
+    </div>
+    <div id="listeDurum" class="liste-kutu gizli">
+      <div class="liste-baslik">Pakete eklenenler: <span id="listeSayi">0</span></div>
+      <ul id="listeUl"></ul>
+      <button id="paketBtn" class="btn yesil">📦 Ekler Dizimi ZIP İndir</button>
+    </div>
+  </section>
+
+  <div id="bildirim" class="bildirim gizli"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

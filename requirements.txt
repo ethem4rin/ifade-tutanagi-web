@@ -1,0 +1,6 @@
+# İşçi İfade Tutanağı - Web (Vercel çalışma zamanı)
+fastapi==0.115.6
+python-multipart==0.0.20
+python-docx==1.2.0
+pypdf==6.16.1
+openpyxl==3.1.5

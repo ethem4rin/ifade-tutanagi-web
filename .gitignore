@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.vercel
+
+# Ortam değişkenleri — gizli anahtarlar
+.env
+.env.local
+
+# Yerel geliştirme verisi (KİŞİSEL VERİ)
+api/veri/
+*.log
