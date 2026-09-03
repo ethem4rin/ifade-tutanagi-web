@@ -231,8 +231,10 @@ def paket_indir(govde: dict = Body(...), authorization: str = Header(default="")
     tutanaklar = []
     for i, kayit in enumerate(kayitlar, 1):
         isci_veri = kayit.get("isci", {})
+        # ön yüz her işçiye sıra numarası atar; yoksa listedeki konumu kullanılır
+        sira = kayit.get("sira") or i
         ad, icerik = _docx_uret({
-            "isyeri": isyeri, "baslik": baslik, "isci": isci_veri, "sira": i,
+            "isyeri": isyeri, "baslik": baslik, "isci": isci_veri, "sira": sira,
             "paragraflar": kayit.get("paragraflar"), "kapanis": kayit.get("kapanis"),
         })
         tutanaklar.append((ad, icerik))

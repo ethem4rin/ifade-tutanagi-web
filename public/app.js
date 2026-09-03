@@ -16,6 +16,7 @@ let veri = null;          // parse edilmiş PDF
 let secili = null;        // seçili işyeri
 let alanSemasi = [];      // ifade alanları
 let paketListe = [];      // toplu ZIP için biriken işçiler
+let siraSayaci = 1;       // tutanak numarası — her indirme/eklemede artar
 
 const $ = (s) => document.querySelector(s);
 const el = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e; };
@@ -294,6 +295,11 @@ $("#isyeriSecim").onchange = (e) => isyeriSec(+e.target.value);
 
 function isyeriSec(i) {
   secili = veri.isyerleri[i];
+  // yeni işyeri -> tutanak numaralandırması baştan başlar
+  siraSayaci = 1;
+  paketListe = [];
+  listeYenile();
+  siraGoster();
   $("#iSicil").value = secili.sicil;
   $("#iUnvan").value = secili.unvan_kisa;
   $("#iIsveren").value = secili.isveren;
@@ -350,20 +356,31 @@ function govdeKur(sira) {
 }
 
 $("#indirBtn").onclick = async () => {
-  if (!$("#k_ad_soyad").value.trim()) return bildir("Adı Soyadı boş olamaz.", true);
+  const ad = $("#k_ad_soyad").value.trim();
+  if (!ad) return bildir("Adı Soyadı boş olamaz.", true);
   try {
-    await apiIndir("/tutanak", govdeKur(paketListe.length + 1), "İfade Tutanağı.docx");
-    bildir("Tutanak indirildi ve hafızaya kaydedildi.");
+    await apiIndir("/tutanak", govdeKur(siraSayaci), "İfade Tutanağı.docx");
+    bildir("İfade " + siraSayaci + " — " + ad + " indirildi ve hafızaya kaydedildi.");
+    siraSayaci++;                 // sonraki işçi 2, 3, 4 ... diye devam etsin
+    siraGoster();
+    formTemizle();
   } catch (err) { bildir(err.message, true); }
 };
+
+function siraGoster() {
+  const e = document.querySelector("#siraEtiket");
+  if (e) e.textContent = "Sıradaki tutanak no: " + siraSayaci;
+}
 
 $("#listeyeBtn").onclick = () => {
   const ad = $("#k_ad_soyad").value.trim();
   if (!ad) return bildir("Adı Soyadı boş olamaz.", true);
   const [paragraflar, kapanis] = onizlemeParagraflar();
-  paketListe.push({ isci: isciTopla(), paragraflar, kapanis });
+  paketListe.push({ isci: isciTopla(), paragraflar, kapanis, sira: siraSayaci });
+  bildir("İfade " + siraSayaci + " — " + ad + " pakete eklendi.");
+  siraSayaci++;
+  siraGoster();
   listeYenile();
-  bildir(ad + " pakete eklendi.");
   formTemizle();
 };
 
@@ -373,7 +390,7 @@ function listeYenile() {
   const u = $("#listeUl"); u.innerHTML = "";
   paketListe.forEach((k, i) => {
     const li = el("li");
-    li.textContent = (i + 1) + ". " + (k.isci.ad_soyad || "(isimsiz)");
+    li.textContent = "İfade " + (k.sira || i + 1) + " — " + (k.isci.ad_soyad || "(isimsiz)");
     u.appendChild(li);
   });
 }
@@ -384,7 +401,7 @@ $("#paketBtn").onclick = async () => {
       { isyeri: isyeriTopla(), baslik: veri.baslik, isciler: paketListe },
       "ekler dizimi.zip");
     bildir("ZIP indirildi — masaüstüne çıkarabilirsiniz.");
-    paketListe = []; listeYenile();
+    paketListe = []; listeYenile(); siraGoster();
   } catch (err) { bildir(err.message, true); }
 };
 
