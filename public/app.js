@@ -1,14 +1,17 @@
 /* İşçi İfade Tutanağı — web arayüz mantığı */
 "use strict";
 
+// [anahtar, etiket, otomatikTamamlama]
+// Hafızada yalnızca ad ve soyad tutulur; diğer alanlar her seferinde elle girilir.
 const KIMLIK = [
-  ["ad_soyad", "Adı Soyadı"],
-  ["dogum_yeri_yili", "Doğum Yeri/Yılı"],
-  ["baba_ana", "Baba/Ana Adı"],
-  ["gorevi", "Görevi"],
-  ["tc", "T.C. Kimlik No"],
-  ["telefon", "Telefon No"],
-  ["ikametgah", "İkametgahı"],
+  ["ad", "Adı", true],
+  ["soyad", "Soyadı", true],
+  ["dogum_yeri_yili", "Doğum Yeri/Yılı", false],
+  ["baba_ana", "Baba/Ana Adı", false],
+  ["gorevi", "Görevi", false],
+  ["tc", "T.C. Kimlik No", false],
+  ["telefon", "Telefon No", false],
+  ["ikametgah", "İkametgahı", false],
 ];
 
 let jeton = localStorage.getItem("jeton") || "";
@@ -197,37 +200,12 @@ function otoTamamla(girdi, alan, secilince) {
 function kimlikKur() {
   const izgara = $("#kimlikIzgara");
   izgara.innerHTML = "";
-  KIMLIK.forEach(([anahtar, etiket]) => {
+  KIMLIK.forEach(([anahtar, etiket, oto]) => {
     const l = el("label"); l.textContent = etiket;
     const g = el("input"); g.type = "text"; g.id = "k_" + anahtar;
     izgara.appendChild(l); izgara.appendChild(g);
-    otoTamamla(g, anahtar, anahtar === "ad_soyad" ? isciHatirla : null);
+    if (oto) otoTamamla(g, anahtar, null);
   });
-}
-
-async function isciHatirla(ad) {
-  let kayit;
-  try { kayit = (await apiJson("/isci?ad=" + encodeURIComponent(ad))).isci; }
-  catch (e) { return; }
-  let sayi = 0;
-  KIMLIK.forEach(([anahtar]) => {
-    if (anahtar === "ad_soyad") return;
-    const deger = (kayit[anahtar] || "").trim();
-    if (deger) { $("#k_" + anahtar).value = deger; sayi++; }
-  });
-  // ifade alanlarından da hatırlananları doldur
-  alanSemasi.forEach((a) => {
-    if (a.tip !== "metin") return;
-    const deger = (kayit[a.anahtar] || "").toString().trim();
-    const g = document.getElementById("f_" + a.anahtar);
-    if (deger && g) g.value = deger;
-  });
-  if (sayi) {
-    const d = $("#hatirlaDurum");
-    d.textContent = "✓ " + ad + " hafızadan dolduruldu (" + sayi + " alan)";
-    d.classList.remove("gizli");
-    setTimeout(() => d.classList.add("gizli"), 6000);
-  }
 }
 
 /* ---------------- ifade bölümü ---------------- */
@@ -322,6 +300,8 @@ function isyeriTopla() {
 function isciTopla() {
   const d = {};
   KIMLIK.forEach(([a]) => { d[a] = $("#k_" + a).value.trim(); });
+  // belge ve dosya adı için tam ad
+  d.ad_soyad = [d.ad, d.soyad].filter(Boolean).join(" ");
   alanSemasi.forEach((a) => {
     const g = document.getElementById("f_" + a.anahtar);
     if (!g) return;
@@ -356,8 +336,9 @@ function govdeKur(sira) {
 }
 
 $("#indirBtn").onclick = async () => {
-  const ad = $("#k_ad_soyad").value.trim();
-  if (!ad) return bildir("Adı Soyadı boş olamaz.", true);
+  const ad = [$("#k_ad").value.trim(), $("#k_soyad").value.trim()].filter(Boolean).join(" ");
+  if (!$("#k_ad").value.trim() || !$("#k_soyad").value.trim())
+    return bildir("Adı ve Soyadı boş olamaz.", true);
   try {
     await apiIndir("/tutanak", govdeKur(siraSayaci), "İfade Tutanağı.docx");
     bildir("İfade " + siraSayaci + " — " + ad + " indirildi ve hafızaya kaydedildi.");
@@ -373,8 +354,9 @@ function siraGoster() {
 }
 
 $("#listeyeBtn").onclick = () => {
-  const ad = $("#k_ad_soyad").value.trim();
-  if (!ad) return bildir("Adı Soyadı boş olamaz.", true);
+  const ad = [$("#k_ad").value.trim(), $("#k_soyad").value.trim()].filter(Boolean).join(" ");
+  if (!$("#k_ad").value.trim() || !$("#k_soyad").value.trim())
+    return bildir("Adı ve Soyadı boş olamaz.", true);
   const [paragraflar, kapanis] = onizlemeParagraflar();
   paketListe.push({ isci: isciTopla(), paragraflar, kapanis, sira: siraSayaci });
   bildir("İfade " + siraSayaci + " — " + ad + " pakete eklendi.");
@@ -437,6 +419,12 @@ $("#formGirdi").onchange = async (e) => {
 function formIsciSec(i) {
   const isc = $("#formIsciSecim")._isciler[i];
   KIMLIK.forEach(([a]) => { if (isc[a] !== undefined) $("#k_" + a).value = isc[a] || ""; });
+  // Excel'de tek sütun "Adı Soyadı" varsa ad/soyad olarak böl
+  if (isc.ad === undefined && isc.ad_soyad) {
+    const p = isc.ad_soyad.trim().split(/\s+/);
+    $("#k_soyad").value = p.length > 1 ? p.pop() : "";
+    $("#k_ad").value = p.join(" ");
+  }
 }
 
 /* ---------------- temizle ---------------- */

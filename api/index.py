@@ -87,7 +87,7 @@ def ben(authorization: str = Header(default="")):
     kayit = depo.kullanici_getir(anahtar) or {}
     # görünen ad: kayıttaki tam ad (yoksa kullanıcı adı)
     return {"kullanici": kayit.get("tam_ad") or kayit.get("ad") or anahtar,
-            "kayitli_isci": len(h.isci_adlari())}
+            "kayitli_isim": h.kayitli_sayisi()}
 
 
 @app.post("/api/sifre")
@@ -148,21 +148,6 @@ def oneriler(alan: str, authorization: str = Header(default="")):
     return {"oneriler": _hafiza(anahtar).oneriler(alan)}
 
 
-@app.get("/api/isci")
-def isci(ad: str, authorization: str = Header(default="")):
-    anahtar = _kullanici(_jeton(authorization))
-    kayit = _hafiza(anahtar).isci_bul(ad)
-    if not kayit:
-        raise HTTPException(status_code=404, detail="Kayıt bulunamadı.")
-    return {"isci": kayit}
-
-
-@app.get("/api/isciler")
-def isciler(authorization: str = Header(default="")):
-    anahtar = _kullanici(_jeton(authorization))
-    return {"adlar": _hafiza(anahtar).isci_adlari()}
-
-
 @app.post("/api/onizleme")
 def onizleme(govde: dict = Body(...), authorization: str = Header(default="")):
     _kullanici(_jeton(authorization))
@@ -201,8 +186,8 @@ def tutanak(govde: dict = Body(...), authorization: str = Header(default="")):
 
     h = _hafiza(anahtar)
     isci_veri = govde.get("isci", {})
-    if (isci_veri.get("ad_soyad") or "").strip():
-        h.isci_ekle(isci_veri)
+    # hafızada yalnızca ad ve soyad tutulur
+    h.ad_soyad_ekle(isci_veri.get("ad", ""), isci_veri.get("soyad", ""))
     isyeri = govde.get("isyeri", {})
     if isyeri.get("unvan_tam"):
         h.unvan_kisa_kaydet(isyeri["unvan_tam"], isyeri.get("unvan_kisa", ""))
@@ -238,8 +223,7 @@ def paket_indir(govde: dict = Body(...), authorization: str = Header(default="")
             "paragraflar": kayit.get("paragraflar"), "kapanis": kayit.get("kapanis"),
         })
         tutanaklar.append((ad, icerik))
-        if (isci_veri.get("ad_soyad") or "").strip():
-            h.isci_ekle(isci_veri)
+        h.ad_soyad_ekle(isci_veri.get("ad", ""), isci_veri.get("soyad", ""))
     h.kaydet()
 
     arsiv = paket.zip_olustur(isyeri.get("unvan_kisa", "isyeri"), tutanaklar)
