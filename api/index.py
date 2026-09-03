@@ -189,7 +189,8 @@ def _docx_uret(govde: dict) -> tuple:
         os.remove(gecici)
     except OSError:
         pass
-    return "İfade Tutanağı %d.docx" % sira, icerik
+    # "İfade 1 Ethem Arın İsimli İşçinin İfade Tutanağı.docx"
+    return IM.dosya_adi(sira, isci_veri.get("ad_soyad", "")), icerik
 
 
 @app.post("/api/tutanak")

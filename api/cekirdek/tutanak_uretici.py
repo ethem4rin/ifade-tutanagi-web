@@ -43,8 +43,9 @@ _ANTET = ["T.C.", "ÇALIŞMA VE SOSYAL GÜVENLİK BAKANLIĞI", "Rehberlik ve Tef
 _KIMLIK_SUTUN = [1696, 142, 2984, 1694, 142, 3362]
 # Antet tablosu sütun genişlikleri (twips, örnekten)
 _ANTET_SUTUN = [1602, 7170, 1550]
-# İmza tablosu sütun genişlikleri (twips, örnekten)
-_IMZA_SUTUN = [2693, 2695, 1702, 2831]
+# İmza tablosu sütun genişlikleri (twips) — 'İfade Tutanağı şablon.docx'ten:
+# toplam 8721, sayfada ortalanmış; isimler orantılı dursun diye bu oranlar korunur.
+_IMZA_SUTUN = [2383, 3996, 21, 2321]
 
 
 # --------------------------------------------------------------------------
@@ -304,6 +305,7 @@ def uret(isyeri: dict, baslik: dict, isci: dict, sira: int, kayit_yolu: str,
 
     # --- imza tablosu ---
     imz = doc.add_table(rows=2, cols=4)
+    imz.alignment = WD_TABLE_ALIGNMENT.CENTER   # şablonda tablo sayfada ortalı
     imz.autofit = False
     _tablo_kenarsiz(imz)
     imzalar = [
