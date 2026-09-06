@@ -36,7 +36,6 @@ ALANLAR = [
        "metin", "", kapsam="isyeri"),
     _a("ucret_ifadesi", "Ücret ödeme günü ve bankası (örn: ilgili ayın 10.günü Ziraat Bankasından)",
        "metin", "", kapsam="isyeri"),
-    _a("vardiya", "İşyerinde vardiyalı çalışma var", "kosul", False, kapsam="isyeri"),
 
     # ---- işçiye özel ----
     _a("ise_baslama", "İşe başlama (yaklaşık yıl/tarih)", "metin", "2017"),
@@ -54,6 +53,7 @@ ALANLAR = [
     _a("elden_odeme", "Elden ücret ödemesi", "secim", "olumsuz"),
     _a("yabanci", "İşyerinde yabancı çalışan", "secim", "olumsuz"),
 
+    _a("vardiya", "Vardiyalı çalışıyor", "kosul", False),
     # vardiya varsa:
     _a("v_gun", "Vardiya: haftada kaç gün", "metin", ""),
     _a("v_saat", "Vardiya saat aralıkları / ara dinlenmeleri", "metin", ""),
