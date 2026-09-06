@@ -138,8 +138,8 @@ async def pdf_yukle(dosya: UploadFile = File(...), authorization: str = Header(d
 # ---------------------------------------------------------------------------
 @app.get("/api/alanlar")
 def alanlar():
-    return {"alanlar": [{"anahtar": a, "etiket": e, "tip": t, "varsayilan": v}
-                        for a, e, t, v in IM.ALANLAR]}
+    # şema artık sözlük listesi: anahtar/etiket/tip/varsayilan/kapsam(+secenekler)
+    return {"alanlar": IM.ALANLAR, "isyeri_alanlari": IM.ISYERI_ALANLARI}
 
 
 @app.get("/api/oneriler")

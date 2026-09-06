@@ -209,35 +209,47 @@ function kimlikKur() {
 }
 
 /* ---------------- ifade bölümü ---------------- */
-function ifadeKur() {
-  const kap = $("#ifadeAlanlar");
-  kap.innerHTML = "";
-  alanSemasi.forEach((a) => {
-    const satir = el("div", "ifade-satir");
-    const soru = el("div", "soru");
-    const nokta = el("span", "nokta " + (a.tip === "metin" ? "kirmizi" : "yesil"));
-    soru.appendChild(nokta);
-    soru.appendChild(document.createTextNode(a.etiket));
-    satir.appendChild(soru);
+function alanSatiri(a) {
+  const satir = el("div", "ifade-satir");
+  const soru = el("div", "soru");
+  const renk = a.tip === "metin" ? "kirmizi" : "yesil";
+  soru.appendChild(el("span", "nokta " + renk));
+  soru.appendChild(document.createTextNode(a.etiket));
+  satir.appendChild(soru);
 
-    if (a.tip === "metin") {
-      const g = el("input"); g.type = "text"; g.id = "f_" + a.anahtar;
-      if (a.varsayilan) g.value = a.varsayilan;
-      satir.appendChild(g);
-      otoTamamla(g, a.anahtar, null);
-    } else {
-      const etiket = el("label", "anahtar");
-      const g = el("input"); g.type = "checkbox"; g.id = "f_" + a.anahtar;
-      const acik = a.varsayilan === true ||
-        String(a.varsayilan).toLowerCase().startsWith("oluml");
-      g.checked = acik;
-      const kaydirak = el("span", "kaydirak");
-      const metin = el("span", "metin"); metin.textContent = acik ? "Evet" : "Hayır";
-      g.onchange = () => { metin.textContent = g.checked ? "Evet" : "Hayır"; };
-      etiket.appendChild(g); etiket.appendChild(kaydirak); etiket.appendChild(metin);
-      satir.appendChild(etiket);
-    }
-    kap.appendChild(satir);
+  if (a.tip === "metin") {
+    const g = el("input"); g.type = "text"; g.id = "f_" + a.anahtar;
+    if (a.varsayilan) g.value = a.varsayilan;
+    satir.appendChild(g);
+  } else if (a.tip === "secenek") {
+    const sec = el("select"); sec.id = "f_" + a.anahtar;
+    (a.secenekler || []).forEach((o) => {
+      const op = el("option"); op.value = o; op.textContent = o;
+      if (o === a.varsayilan) op.selected = true;
+      sec.appendChild(op);
+    });
+    satir.appendChild(sec);
+  } else {
+    const etiket = el("label", "anahtar");
+    const g = el("input"); g.type = "checkbox"; g.id = "f_" + a.anahtar;
+    g.checked = a.varsayilan === true ||
+      String(a.varsayilan).toLowerCase().startsWith("oluml");
+    const kaydirak = el("span", "kaydirak");
+    const metin = el("span", "metin");
+    metin.textContent = g.checked ? "Evet" : "Hayır";
+    g.onchange = () => { metin.textContent = g.checked ? "Evet" : "Hayır"; };
+    etiket.appendChild(g); etiket.appendChild(kaydirak); etiket.appendChild(metin);
+    satir.appendChild(etiket);
+  }
+  return satir;
+}
+
+function ifadeKur() {
+  const isci = $("#ifadeAlanlar");
+  const isyeri = $("#isyeriGenelAlanlar");
+  isci.innerHTML = ""; isyeri.innerHTML = "";
+  alanSemasi.forEach((a) => {
+    (a.kapsam === "isyeri" ? isyeri : isci).appendChild(alanSatiri(a));
   });
 }
 
@@ -265,8 +277,8 @@ $("#pdfGirdi").onchange = async (e) => {
   });
   $("#isyeriSatir").style.display = "";
   isyeriSec(0);
-  ["#isyeriKart", "#kimlikKart", "#ifadeKart", "#onizlemeKart", "#kaydetKart"]
-    .forEach((x) => $(x).classList.remove("gizli"));
+  ["#isyeriKart", "#isyeriGenelKart", "#kimlikKart", "#ifadeKart",
+   "#onizlemeKart", "#kaydetKart"].forEach((x) => $(x).classList.remove("gizli"));
 };
 
 $("#isyeriSecim").onchange = (e) => isyeriSec(+e.target.value);
@@ -305,7 +317,9 @@ function isciTopla() {
   alanSemasi.forEach((a) => {
     const g = document.getElementById("f_" + a.anahtar);
     if (!g) return;
-    d[a.anahtar] = a.tip === "metin" ? g.value.trim() : g.checked;
+    if (a.tip === "metin") d[a.anahtar] = g.value.trim();
+    else if (a.tip === "secenek") d[a.anahtar] = g.value;
+    else d[a.anahtar] = g.checked;
   });
   return d;
 }
@@ -433,6 +447,7 @@ $("#yeniBtn").onclick = formTemizle;
 function formTemizle() {
   KIMLIK.forEach(([a]) => { $("#k_" + a).value = ""; });
   alanSemasi.forEach((a) => {
+    if (a.kapsam === "isyeri") return;   // işyeri geneli bilgiler korunur
     const g = document.getElementById("f_" + a.anahtar);
     if (g && a.tip === "metin") g.value = a.varsayilan || "";
   });
