@@ -211,6 +211,11 @@ function kimlikKur() {
 /* ---------------- ifade bölümü ---------------- */
 function alanSatiri(a) {
   const satir = el("div", "ifade-satir");
+  satir.dataset.alan = a.anahtar;
+  if (a.bagli) {
+    satir.dataset.bagliAlan = a.bagli.alan;
+    satir.dataset.bagliAcik = a.bagli.acik ? "1" : "0";
+  }
   const soru = el("div", "soru");
   const renk = a.tip === "metin" ? "kirmizi" : "yesil";
   soru.appendChild(el("span", "nokta " + renk));
@@ -251,6 +256,29 @@ function ifadeKur() {
   alanSemasi.forEach((a) => {
     (a.kapsam === "isyeri" ? isyeri : isci).appendChild(alanSatiri(a));
   });
+  bagimliliklariKur();
+}
+
+/* Bir alan başka bir Evet/Hayır anahtarına bağlıysa, yalnızca o durumda görünür.
+   Böylece form gereksiz kutularla kalabalık olmaz. */
+function bagimliliklariKur() {
+  const bagli = [...document.querySelectorAll("[data-bagli-alan]")];
+  const ustler = new Set(bagli.map((s) => s.dataset.bagliAlan));
+
+  const yenile = () => {
+    bagli.forEach((satir) => {
+      const ust = document.getElementById("f_" + satir.dataset.bagliAlan);
+      if (!ust) return;
+      const istenen = satir.dataset.bagliAcik === "1";
+      satir.classList.toggle("gizli", ust.checked !== istenen);
+    });
+  };
+
+  ustler.forEach((anahtar) => {
+    const ust = document.getElementById("f_" + anahtar);
+    if (ust) ust.addEventListener("change", yenile);
+  });
+  yenile();
 }
 
 /* ---------------- PDF ---------------- */

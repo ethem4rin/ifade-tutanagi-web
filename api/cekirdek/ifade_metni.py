@@ -19,11 +19,14 @@ VARDIYA_YOK = "Bulunmamaktadır"          # yıllık izin seçeneği
 IZIN_SECENEKLERI = [VARDIYA_YOK, "14", "20", "26"]
 
 
-def _a(anahtar, etiket, tip, varsayilan, kapsam="isci", secenekler=None):
+def _a(anahtar, etiket, tip, varsayilan, kapsam="isci", secenekler=None, bagli=None):
+    """bagli=(alan, acik_mi) -> bu alan yalnızca o anahtar Evet/Hayır iken görünür."""
     d = {"anahtar": anahtar, "etiket": etiket, "tip": tip,
          "varsayilan": varsayilan, "kapsam": kapsam}
     if secenekler:
         d["secenekler"] = secenekler
+    if bagli:
+        d["bagli"] = {"alan": bagli[0], "acik": bool(bagli[1])}
     return d
 
 
@@ -44,8 +47,8 @@ ALANLAR = [
     _a("gorev_tanimi", "Yaptığı işler (görev tanımı)", "metin", ""),
 
     _a("giris_cikis", "İşe giriş-çıkış yaptı mı", "kosul", False),
-    _a("cikis_yili", "Çıkış yılı (giriş-çıkış = Evet ise)", "metin", ""),
-    _a("giris_yili", "Tekrar giriş yılı (giriş-çıkış = Evet ise)", "metin", ""),
+    _a("cikis_yili", "Çıkış yılı", "metin", "", bagli=("giris_cikis", True)),
+    _a("giris_yili", "Tekrar giriş yılı", "metin", "", bagli=("giris_cikis", True)),
 
     _a("sozlesme", "İş sözleşmesi imzaladı ve nüsha aldı", "secim", "olumlu"),
     _a("ucret_son_ay", "Son ay alınan ücret (TL)", "metin", ""),
@@ -54,19 +57,19 @@ ALANLAR = [
     _a("yabanci", "İşyerinde yabancı çalışan", "secim", "olumsuz"),
 
     _a("vardiya", "Vardiyalı çalışıyor", "kosul", False),
-    # vardiya varsa:
-    _a("v_gun", "Vardiya: haftada kaç gün", "metin", ""),
-    _a("v_saat", "Vardiya saat aralıkları / ara dinlenmeleri", "metin", ""),
-    _a("v_hafta_tatili", "Vardiya: haftada kaç gün hafta tatili", "metin", ""),
-    # vardiya yoksa:
-    _a("n_gun", "Normal: haftada kaç gün çalışıyor", "metin", ""),
-    _a("n_saat", "Normal: saat aralığı + ara dinlenmesi", "metin", ""),
-    _a("n_tatil_gun", "Normal: hangi günler hafta tatili", "metin", ""),
+    # vardiyalı ise:
+    _a("v_gun", "Vardiya: haftada kaç gün", "metin", "", bagli=("vardiya", True)),
+    _a("v_saat", "Vardiya saat aralıkları / ara dinlenmeleri", "metin", "", bagli=("vardiya", True)),
+    _a("v_hafta_tatili", "Vardiya: haftada kaç gün hafta tatili", "metin", "", bagli=("vardiya", True)),
+    # vardiyasız ise:
+    _a("n_gun", "Haftada kaç gün çalışıyor", "metin", "", bagli=("vardiya", False)),
+    _a("n_saat", "Saat aralığı + ara dinlenmesi", "metin", "", bagli=("vardiya", False)),
+    _a("n_tatil_gun", "Hangi günler hafta tatili", "metin", "", bagli=("vardiya", False)),
 
     _a("fazla_mesai", "Yoğun dönemde fazla çalışma oluyor", "secim", "olumlu"),
-    _a("fm_odeme", "Fazla çalışma ödemesi alıyor", "secim", "olumlu"),
+    _a("fm_odeme", "Fazla çalışma ödemesi alıyor", "secim", "olumlu", bagli=("fazla_mesai", True)),
     _a("ubgt", "UBGT günlerinde çalışma oluyor", "secim", "olumlu"),
-    _a("ubgt_odeme", "UBGT için ilave ücret ödeniyor", "secim", "olumlu"),
+    _a("ubgt_odeme", "UBGT için ilave ücret ödeniyor", "secim", "olumlu", bagli=("ubgt", True)),
 
     _a("izin_gun", "Yıllık izin hakkı", "secenek", "14", secenekler=IZIN_SECENEKLERI),
     _a("bakiye_izin", "Birikmiş bakiye yıllık izin", "secim", "olumsuz"),
